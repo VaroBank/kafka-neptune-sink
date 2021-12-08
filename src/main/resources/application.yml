@@ -1,0 +1,74 @@
+logging:
+  level:
+    root: WARN
+    org.springframework: INFO
+    org.apache.kafka: INFO
+    com.varobank: DEBUG
+    org.apache.tinkerpop.gremlin: INFO
+
+app:
+  kafka:
+    consumer:
+      topics: cdc.customer.customer,
+        cdc.login.login,
+        cdc.address.address,
+        cdc.orders.orders,
+        cdc.service.service
+spring:
+  kafka:
+    properties:
+      security.protocol: SSL
+      max.poll.records: 10
+      max.partition.fetch.bytes: 1049000
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: KafkaExampleConsumer
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      fetch-min-size: 1
+    listener:
+      concurrency: 3
+      ack-mode: manual_immediate
+
+neptune:
+  settings:
+    root_customer_vertex: cdc.customer.customer
+    schema:
+      - vertex: cdc.customer.customer      # name of the vertex in the Neptune DB
+        kafka_topic: cdc.customer.customer # name of the kafka topic
+        prefix: customer_                  # adds prefix to the vertex id to ensure the id uniqueness across all vertices
+        id: id                             # unique id (primary key) in customer entity
+        child:
+          - vertex: cdc.login.login
+            kafka_topic: cdc.login.login
+            prefix: login_
+            id: identity_id               # unique id (primary key) in login entity
+            ref_key: identity_id          # reference key (similar to foreign key) that links login entity to customer entity
+            parent_prop_key: identity_id  # property key in customer entity to which the the login entity is linked to
+            edge_label: logged            # label of the edge (link) between login and customer entities
+          - vertex: cdc.address.address
+            kafka_topic: cdc.address.address
+            prefix: address_
+            id: customer_id               # unique id (primary key) in address entity
+            ref_key: customer_id          # reference key (similar to foreign key) that links address entity to customer entity
+            parent_prop_key: id           # property key in customer entity to which the the address entity is linked to
+            edge_label: address
+          - vertex: cdc.orders.orders
+            kafka_topic: cdc.orders.orders
+            prefix: orders_
+            id: id                        # unique id (primary key) in orders entity
+            ref_key: customer_id          # reference key (similar to foreign key) that links orders entity to customer entity
+            parent_prop_key: id           # property key in customer entity to which the the orders entity is linked to
+            edge_label: orders
+            child:
+              - vertex: cdc.service.service
+                kafka_topic: cdc.service.service
+                prefix: service_
+                id: id                        # unique id (primary key) in service entity
+                ref_key: id                   # reference key (similar to foreign key) that links service entity to orders entity
+                parent_prop_key: service_id   # property key in orders entity to which the the service entity is linked to
+                edge_label: service

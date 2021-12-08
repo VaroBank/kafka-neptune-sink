@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property resource="application.properties" />
+    <contextName>${spring.application.name}</contextName>
+    <appender name="json" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <fieldName>@timestamp</fieldName>
+                    <pattern>yyyy-MM-dd'T'HH:mm:ss.SSS</pattern>
+                </timestamp>
+                <message>
+                    <fieldName>message</fieldName>
+                </message>
+                <loggerName>
+                    <fieldName>logger_name</fieldName>
+                </loggerName>
+                <logLevel>
+                    <fieldName>level</fieldName>
+                </logLevel>
+                <threadName>
+                    <fieldName>thread_name</fieldName>
+                </threadName>
+                <callerData>
+                    <classFieldName>class</classFieldName>
+                    <methodFieldName>method</methodFieldName>
+                    <lineFieldName>line</lineFieldName>
+                    <fileFieldName>file</fileFieldName>
+                </callerData>
+                <mdc />
+                <arguments>
+                    <includeNonStructuredArguments>false</includeNonStructuredArguments>
+                </arguments>
+                <stackTrace>
+                    <fieldName>stack</fieldName>
+                </stackTrace>
+                <contextName>
+                    <fieldName>application_name</fieldName>
+                </contextName>
+            </providers>
+        </encoder>
+    </appender>
+
+
+    <root level="debug">
+        <appender-ref ref="json" />
+    </root>
+</configuration>
