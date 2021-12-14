@@ -19,6 +19,7 @@ package com.varobank.common.gremlin.utils;
 
 import org.apache.tinkerpop.gremlin.driver.Client;
 import org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection;
+import org.apache.tinkerpop.gremlin.process.remote.RemoteConnection;
 import org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.slf4j.Logger;
@@ -50,12 +51,16 @@ public class ConnectionConfig implements RetryCondition {
         }
 
         if (traversalSource == null) {
-            Client client = cluster.connect();
-            DriverRemoteConnection connection = DriverRemoteConnection.using(client);
+            RemoteConnection connection = createRemoteConnection();
             traversalSource = AnonymousTraversalSource.traversal().withRemote(connection);
         }
 
         return traversalSource;
+    }
+
+    public RemoteConnection createRemoteConnection() {
+        Client client = cluster.connect();
+        return DriverRemoteConnection.using(client);
     }
 
     public void close() throws Exception {
