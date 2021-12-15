@@ -2,6 +2,7 @@ package com.varobank.common.gremlin.queries;
 
 import com.varobank.common.gremlin.utils.ConnectionConfig;
 import com.varobank.common.gremlin.utils.NeptuneSchema;
+import com.varobank.common.gremlin.utils.Schema;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
@@ -27,11 +28,19 @@ public class BatchWriteQueries extends BaseQueries {
     public BatchWriteQueries() {
     }
 
-    public BatchWriteQueries(ConnectionConfig connectionConfig, NeptuneSchema rawSchema) {
+    protected BatchWriteQueries(ConnectionConfig connectionConfig, Schema schema) {
         this.traversal = new GremlinTraversal(connectionConfig.traversalSource());
-        setRawSchema(rawSchema);
+        setSchema(schema);
     }
 
+    /**
+     * Soft delete of the vertex record in Neptune DB. Neptune schema must be defined.
+     * @param json
+     * @param topic
+     * @param op
+     * @param ts_ms
+     * @param insertDateTime
+     */
     public void deleteVertex(JSONObject json, String topic, String op, long ts_ms, long insertDateTime) {
         Map<String, String> settings = getSchema().get(topic);
         String id = settings.get("id");
@@ -49,6 +58,14 @@ public class BatchWriteQueries extends BaseQueries {
 
     }
 
+    /**
+     * Creates or updates a vertex record in the Neptune DB from provided json. Neptune schema must be defined.
+     * @param json
+     * @param topic
+     * @param op
+     * @param ts_ms
+     * @param insertDateTime
+     */
     public void upsertVertex(JSONObject json, String topic, String op, long ts_ms, long insertDateTime) {
         Map<String, String> settings = getSchema().get(topic);
         if (settings == null) {
@@ -83,6 +100,23 @@ public class BatchWriteQueries extends BaseQueries {
         }
     }
 
+    /**
+     * Creates or updates an Edge record in the Neptune DB from provided json. Neptune schema must be defined.
+     * In order to create an edge between two vertices those two vertices must exist. Prior to creating of an edge
+     * the following conditions are checked:
+     * - when creating an edge from parent vertex to child vertex (one-to-one or many-to-one relationship) child vertex
+     *   must be pre-created if it doesn't exist (child vertex is pre-created as an empty vertex with just child vertex id)
+     * - when creating an edge from child vertex to parent vertex (one-to-one or one-to-many relationship) parent vertex
+     *   must be pre-created if it doesn't exist (as an empty vertex with the parent vertex id)
+     * * All pre-created empty vertices are updated with the real data as soon as this data is pulled from the Kafka.
+     * * Many-to-many relationship can only be created via an intermediate vertex using many-to-one and one-to-many
+     *   relationships which has to defined in the Neptune schema.
+     * @param json
+     * @param topic
+     * @param op
+     * @param ts_ms
+     * @param insertDateTime
+     */
     public void upsertEdge(JSONObject json, String topic, String op, long ts_ms, long insertDateTime) {
         Map<String, String> settings = getSchema().get(topic);
         if (settings.containsKey("child")) {
@@ -99,11 +133,17 @@ public class BatchWriteQueries extends BaseQueries {
                     String edgeLabel = childSettings.get("edge_label");
                     if (childSettings.get("id").equals(childSettings.get("ref_key"))) {
                         String childPrefix = childSettings.get("prefix");
-                        String toVertexId = childPrefix + json.get(connectingPropKey);
-                        // 1. Pre-create child vertx if enough info in current JSON message about the child
-                        // This allows to create many to one and one to one relationship
-                        createVertexIfNotExist(toVertexId, childTopic, insertDateTime);
-                        addEdge(fromVertexId, toVertexId, edgeLabel, insertDateTime);
+                        String connectingPropKeyValue = json.get(connectingPropKey) != null ? json.get(connectingPropKey).toString() : null;
+                        if (connectingPropKeyValue != null && !connectingPropKeyValue.isEmpty()) {
+                            String toVertexId = childPrefix + connectingPropKeyValue;
+                            // 1. Pre-create child vertx if enough info in current JSON message about the child
+                            // This allows to create many to one and one to one relationship
+                            createVertexIfNotExist(toVertexId, childTopic, insertDateTime);
+                            addEdge(fromVertexId, toVertexId, edgeLabel, insertDateTime);
+                        } else {
+                            logger.warn("connectingPropKey " + connectingPropKey + " is empty. Topic: " + topic + " json: " + json);
+                        }
+
                     }
                 }
             }
@@ -123,10 +163,15 @@ public class BatchWriteQueries extends BaseQueries {
                 // 2. Pre-create parent vertx if enough info in current JSON message about the parent
                 // This allows to create one to many and one to one relationship
                 String parentPrefix = parentSettings.get("prefix");
-                String fromVertexId = parentPrefix + json.get(connectingRefKey);
-                //case the parent vertex can be pre-created if not exists
-                createVertexIfNotExist(fromVertexId, parentTopic, insertDateTime);
-                addEdge(fromVertexId, toVertexId, edgeLabel, insertDateTime);
+                String connectingRefKeyValue = json.get(connectingRefKey) != null ? json.get(connectingRefKey).toString() : null;
+                if (connectingRefKeyValue != null && !connectingRefKeyValue.isEmpty()) {
+                    String fromVertexId = parentPrefix + connectingRefKeyValue;
+                    //case the parent vertex can be pre-created if not exists
+                    createVertexIfNotExist(fromVertexId, parentTopic, insertDateTime);
+                    addEdge(fromVertexId, toVertexId, edgeLabel, insertDateTime);
+                } else {
+                    logger.warn("connectingRefKey " + connectingRefKey + " is empty. Topic: " + topic + " json: " + json);
+                }
             }
         }
     }

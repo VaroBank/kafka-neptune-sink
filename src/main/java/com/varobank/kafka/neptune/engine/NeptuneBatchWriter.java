@@ -1,5 +1,6 @@
 package com.varobank.kafka.neptune.engine;
 
+import com.varobank.common.gremlin.queries.GremlinQueriesObjectFactory;
 import com.varobank.common.gremlin.utils.*;
 import com.varobank.kafka.neptune.utils.Metrics;
 import com.varobank.kafka.neptune.utils.RetryClient;
@@ -19,6 +20,14 @@ public class NeptuneBatchWriter {
 
     private final Logger logger = LoggerFactory.getLogger(NeptuneBatchWriter.class);
 
+    private static final String OP = "op";
+    private static final String DELETE = "d";
+    private static final String AFTER = "after";
+    private static final String BEFORE = "before";
+    private static final String PAYLOAD = "payload";
+    private static final String TS_MS = "ts_ms";
+
+
     private final RetryClient retryClient = new RetryClient();
 
     @Value("${cluster.id}")
@@ -28,7 +37,10 @@ public class NeptuneBatchWriter {
     private ConnectionConfig connectionConfig;
 
     @Autowired
-    private NeptuneSchema rawSchema;
+    private GremlinQueriesObjectFactory queriesObjectFactory;
+
+    @Autowired
+    private Schema schema;
 
     public void setConnectionConfig(ConnectionConfig connectionConfig) {
         this.connectionConfig = connectionConfig;
@@ -39,9 +51,36 @@ public class NeptuneBatchWriter {
     }
 
     public BatchWriteQueries createBatchWriteQueries() {
-        return new BatchWriteQueries(connectionConfig, rawSchema);
+        return queriesObjectFactory.createBatchWriteQueries();
     }
 
+    /**
+     * Validates the user defined Neptune schema against the kafka messages - if not valid throws an Exception
+     * @param records
+     * @throws Exception
+     */
+    public void validateSchema(List<ConsumerRecord<String, String>> records) throws Exception {
+        for (ConsumerRecord<String, String> record : records) {
+            if (record != null) {
+                String topic = record.topic();
+                JSONObject payload = getPayloadJson(record.value());
+                if (payload != null) {
+                    JSONObject json = payload.getString(OP).equals(DELETE) && payload.has(BEFORE) ? payload.getJSONObject(BEFORE) :
+                            (payload.has(AFTER) ? payload.getJSONObject(AFTER) : null);
+                    if (json != null) {
+                        schema.validateSchema(json, topic);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Writes the batch of kafka JSON massages to Neptune using BatchWriteQueries methods to upsert vertices and edges.
+     * If the batch write query fails and the exception is retriable then the query will be retried for up to 5 times.
+     * @param records
+     * @throws Exception
+     */
     public void writeToNeptune(List<ConsumerRecord<String, String>> records) throws Exception {
         Metrics metrics = new Metrics(clusterId);
         long batchTime = System.currentTimeMillis();
@@ -97,6 +136,12 @@ public class NeptuneBatchWriter {
         return topic;
     }
 
+    /**
+     * Writes a single kafka JSON massages to Neptune using BatchWriteQueries methods to upsert vertices and edges.
+     * If the batch write query fails and the exception is retriable then the query will be retried for up to 5 times.
+     * @param record
+     * @throws Exception
+     */
     public void retryWriteToNeptune(ConsumerRecord<String, String> record) throws Exception {
         Metrics metrics = new Metrics(clusterId);
         long batchTime = System.currentTimeMillis();
@@ -126,46 +171,51 @@ public class NeptuneBatchWriter {
         metrics.publish();
     }
 
+    private JSONObject getPayloadJson(String message) {
+        JSONObject json = new JSONObject(message);
+        if (json != null && json.has(PAYLOAD)) {
+            JSONObject payload = json.getJSONObject(PAYLOAD);
+            if (payload != null && payload.has(OP)) {
+                return payload;
+            }
+        }
+
+        return null;
+    }
+
     private void addVerticesBatchQuery(ConsumerRecord<String, String> record, String topic, long batchTime, BatchWriteQueries query) {
-        JSONObject json = new JSONObject(record.value());
-        if (json != null && json.has("payload")) {
-            JSONObject payload = json.getJSONObject("payload");
-            if (payload != null && payload.has("op")) {
-                long ts_ms = payload.has("ts_ms") ? payload.getLong("ts_ms") : 0;
-                long insertDateTime = batchTime;
-                String op = payload.getString("op");
-                if (op.equals("d")) {
-                    if (payload.has("before")) {
-                        JSONObject before = payload.getJSONObject("before");
-                        query.deleteVertex(before, topic, op, ts_ms, insertDateTime);
-                    }
-                } else {
-                    if (payload.has("after")) {
-                        JSONObject after = payload.getJSONObject("after");
-                        query.upsertVertex(after, topic, op, ts_ms, insertDateTime);
-                    }
+        JSONObject payload = getPayloadJson(record.value());
+        if (payload != null) {
+            long ts_ms = payload.has(TS_MS) ? payload.getLong(TS_MS) : 0;
+            long insertDateTime = batchTime;
+            String op = payload.getString(OP);
+            if (op.equals(DELETE)) {
+                if (payload.has(BEFORE)) {
+                    JSONObject before = payload.getJSONObject(BEFORE);
+                    query.deleteVertex(before, topic, op, ts_ms, insertDateTime);
+                }
+            } else {
+                if (payload.has(AFTER)) {
+                    JSONObject after = payload.getJSONObject(AFTER);
+                    query.upsertVertex(after, topic, op, ts_ms, insertDateTime);
                 }
             }
         }
     }
 
-
     private void addEdgesBatchQuery(ConsumerRecord<String, String> record, String topic, long batchTime, BatchWriteQueries query) {
         Map<String, String> settings = query.getSchema().get(topic);
         if (record != null && (settings.containsKey("child") || query.isCreatableParentRelationship(topic))) {
-            JSONObject json = new JSONObject(record.value());
-            if (json != null && json.has("payload")) {
-                JSONObject payload = json.getJSONObject("payload");
-                if (payload != null && payload.has("op")) {
-                    long ts_ms = payload.has("ts_ms") ? payload.getLong("ts_ms") : 0;
-                    long insertDateTime = batchTime;
-                    String op = payload.getString("op");
-                    if (op.equals("d")) {
-                    } else {
-                        if (payload.has("after")) {
-                            JSONObject after = payload.getJSONObject("after");
-                            query.upsertEdge(after, topic, op, ts_ms, insertDateTime);
-                        }
+            JSONObject payload = getPayloadJson(record.value());
+            if (payload != null) {
+                long ts_ms = payload.has(TS_MS) ? payload.getLong(TS_MS) : 0;
+                long insertDateTime = batchTime;
+                String op = payload.getString(OP);
+                if (op.equals(DELETE)) {
+                } else {
+                    if (payload.has(AFTER)) {
+                        JSONObject after = payload.getJSONObject(AFTER);
+                        query.upsertEdge(after, topic, op, ts_ms, insertDateTime);
                     }
                 }
             }

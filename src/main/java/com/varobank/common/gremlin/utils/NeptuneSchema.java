@@ -108,6 +108,13 @@ public class NeptuneSchema {
 
     }
 
+    /**
+     * Transforms the Neptune schema defined via yaml into the kay-value map. The key-value map schema is used across the
+     * read/write graph traversal queries.
+     * @param rawSettings
+     * @param schema
+     * @param parent
+     */
     public void transformSchema(NeptuneSchema.Schema rawSettings, Map<String, Map<String, String>> schema, String parent) {
         String vertex = rawSettings.getVertex();
         List<String> childVertices = new ArrayList<>();

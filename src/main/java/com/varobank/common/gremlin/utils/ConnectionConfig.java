@@ -44,6 +44,10 @@ public class ConnectionConfig implements RetryCondition {
         this.cluster = cluster;
     }
 
+    /**
+     * Connects to Gremlin cluster and returns the graph traversal source
+     * @return GraphTraversalSource
+     */
     public GraphTraversalSource traversalSource() {
         if (!cluster.isCreated()) {
             traversalSource = null;
@@ -71,6 +75,11 @@ public class ConnectionConfig implements RetryCondition {
         return cluster.getNeptuneEndpoint();
     }
 
+    /**
+     * Determines if the given exception is retriable or not
+     * @param e
+     * @return true if retriable else false
+     */
     @Override
     public boolean allowRetry(Throwable e) {
         StringWriter stringWriter = new StringWriter();

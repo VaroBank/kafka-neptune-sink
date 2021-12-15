@@ -1,6 +1,7 @@
 package com.varobank.kafka.neptune.engine;
 
 import com.rpuch.moretestcontainers.gremlinserver.GremlinServerContainer;
+import com.varobank.common.gremlin.queries.GremlinQueriesObjectFactory;
 import com.varobank.common.gremlin.queries.ReadQueries;
 import com.varobank.common.gremlin.queries.WriteQueries;
 import com.varobank.common.gremlin.utils.ConnectionCluster;
@@ -44,6 +45,9 @@ public class NeptuneWriterIntegrationTest {
 
     @Autowired
     private NeptuneBatchWriter neptuneBatchWriter;
+
+    @Autowired
+    private GremlinQueriesObjectFactory queriesObjectFactory;
 
     @Autowired
     private NeptuneSchema rawSchema;
@@ -155,10 +159,11 @@ public class NeptuneWriterIntegrationTest {
     @Test
     public void writeToNeptuneTest() throws Exception {
         ConnectionConfig conf = getConnectionConfig();
+        queriesObjectFactory.setConnectionConfig(conf);
         neptuneBatchWriter.setConnectionConfig(conf);
 
-        ReadQueries nr = new ReadQueries(conf, rawSchema);
-        WriteQueries nw = new WriteQueries(conf, rawSchema);
+        ReadQueries nr = queriesObjectFactory.createReadQueries();
+        WriteQueries nw = queriesObjectFactory.createWriteQueries();
 
         List<ConsumerRecord<String, String>> records = createRecords("cdc.customer.customer", "id", null, "identity_id", 1, null,101);
         List<ConsumerRecord<String, String>> loginRecords = createRecords("cdc.login.login", "identity_id", null, "test_id", 101, null, 201);

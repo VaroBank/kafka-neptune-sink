@@ -52,11 +52,20 @@ public class Consumer extends AbstractConsumerSeekAware {
         return applicationContext.getId();
     }
 
+    /**
+     * Batch Kafka Listener (up to 10 kafka messages). If the entire batch is successfully processed and written to Neptune
+     * then the receipt of the kafka messages is acknowledged and the offset for each kafka topic is committed.
+     * Otherwise the receipt is not acknowledged and the same batch of messages will be pulled again by this method.
+     * @param list
+     * @param ack
+     * @throws Exception
+     */
     @KafkaListener(id = "customerProfileConsumer", topics = "#{topicUtil.topics()}"
             ,containerFactory = "kafkaBatchListenerContainerFactory")
     public void listenBatch0(List<ConsumerRecord<String, String>> list, Acknowledgment ack) throws Exception {
         if (list != null || !list.isEmpty()) {
             logger.info("polled from kafka " + list.size());
+            validateSchema(list);
             writeBatchToNeptune(list);
             list.clear();
             ack.acknowledge();
@@ -66,6 +75,31 @@ public class Consumer extends AbstractConsumerSeekAware {
         }
     }
 
+    /**
+     * Validates the user defined Neptune schema against the kafka messages - if not valid throws an Exception
+     * @param list
+     * @throws Exception
+     */
+    private void validateSchema(List<ConsumerRecord<String, String>> list) throws Exception {
+        neptuneBatchWriter.validateSchema(list);
+    }
+
+    private void validateSchema(ConsumerRecord<String, String> record) throws Exception {
+        neptuneBatchWriter.validateSchema(Arrays.asList(record));
+    }
+
+    /**
+     * Tries to process the batch of kafka messages. If it fails and the exception is retriable then it will try to process those messages
+     * one by one.
+     * If a processing of an individual kafka message fails then such message will be sent to the __dlq kafka topic for manual review/reprocessing.
+     * * Note, the rate of failed messages is expected to be very low under the normal circumstances. If the rate of failed messages is high then
+     *   this method will throw an Exception - which means that the entire batch will be not acknowledged and pulled by batch kafka listener method again.
+     *   High rate of failed messages means that there is either a connection issue to the Neptune DB or the user defined Neptune schema
+     *   is misconfigured and has to be fixed. Until these issues are fixed none of the kafka messages will be acknowledged and kafka topic offset
+     *   will not be committed.
+     * @param list
+     * @throws Exception
+     */
     public void writeBatchToNeptune(List<ConsumerRecord<String, String>> list) throws Exception {
         try {
             neptuneBatchWriter.writeToNeptune(list);
@@ -153,11 +187,21 @@ public class Consumer extends AbstractConsumerSeekAware {
         return System.currentTimeMillis()/1000000;
     }
 
+    /**
+     * If there is a need to retry processing of the failed kafka messages that went to the dlq topic
+     * these messages can be sent to the retry topic for example:
+     *    from cdc.login.login__application__dlq => cdc.login.login__application__retry
+     * This method listens to the retry kafka topics and pulls/processes those messages one by one.
+     * If it fails to process a kafka message then such message will be sent again to the __dlq kafka topic.
+     * @param message
+     * @param ack
+     */
     @KafkaListener(topics = "#{topicUtil.retryTopics()}"
             , containerFactory = "kafkaListenerContainerFactory")
     public void listenRetryVertices(ConsumerRecord<String, String> message, Acknowledgment ack) {
         if (message != null) {
             try {
+                validateSchema(message);
                 neptuneBatchWriter.retryWriteToNeptune(message);
                 ack.acknowledge();
             } catch (JSONException jsonException) {

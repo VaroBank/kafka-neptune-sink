@@ -2,6 +2,7 @@ package com.varobank.common.gremlin.queries;
 
 import com.varobank.common.gremlin.utils.ConnectionConfig;
 import com.varobank.common.gremlin.utils.NeptuneSchema;
+import com.varobank.common.gremlin.utils.Schema;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.WithOptions;
@@ -25,11 +26,14 @@ public class WriteQueries extends BaseQueries {
     public WriteQueries() {
     }
 
-    public WriteQueries(ConnectionConfig connectionConfig, NeptuneSchema rawSchema) {
+    protected WriteQueries(ConnectionConfig connectionConfig, Schema schema) {
         this.traversalSource = connectionConfig.traversalSource();
-        setRawSchema(rawSchema);
+        setSchema(schema);
     }
 
+    /**
+     * Drops all vertices and edges in the Neptune DB
+     */
     public void clear() {
         long countToDelete = traversalSource.V().count().toList().get(0);
 
@@ -40,6 +44,10 @@ public class WriteQueries extends BaseQueries {
         }
     }
 
+    /**
+     * Drops all child vertices and edges including the provided rootVertex
+     * @param rootVertex
+     */
     public void clearNeptuneVertices(String rootVertex) {
         Map<String, String> settings = getSchema().get(rootVertex);
         clearByVertex(rootVertex);
