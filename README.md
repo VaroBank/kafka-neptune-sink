@@ -29,7 +29,7 @@ Here at Varo we cdc all changes (inserts/updates/deletes) to the data in the Pos
 
 ![ER Diagram](er-diagram.png)
 
-In the relational DB you define the relationships between tables on the table lavel using primary/foreign keys as the connection rules for each record that exists in the relational DB tables.
+In the relational DB you define the relationships between tables on the table level using primary/foreign keys as the connection rules for each record that exists in the relational DB tables.
 Relationships between vertices (nodes) in Neptune are conceptually different - they are real physical relationships between each record. Such relationship can not be defined on a top level (entity level) and has to be created for each vertex record individually. Such design approach taken by Neptune and other graph DBs on one hand makes it more difficult writing data to the DB but on the other hand enables extremely fast read queries from the DB.
 
 This service simplifies the work needed to create the relationships between vertices. In the below schema we define exactly the same relationships between entities as in the ER Diagram above (as table level relationships) and delegate the work of creating the relationships between the individual records to this service.
@@ -83,4 +83,4 @@ To run the integration tests locally you will need to have docker container and 
 
 # License Summary
 
-Are we using BSD 2 license? Leaving it up to legal to decide what we should have here.
+This code is made available under a BSD-2 license. See the LICENSE file. (NEEDS LEGAL REVIEW!)
