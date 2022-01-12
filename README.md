@@ -83,4 +83,4 @@ To run the integration tests locally you will need to have docker container and 
 
 # License Summary
 
-This code is made available under a BSD-2 license. See the LICENSE file. (NEEDS LEGAL REVIEW!)
+This code is made available under a BSD 2-Clause License. See the LICENSE file.
