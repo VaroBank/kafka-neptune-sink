@@ -84,7 +84,7 @@ public class Consumer extends AbstractConsumerSeekAware {
      * @param ack
      * @throws Exception
      */
-    @KafkaListener(id = "customerProfileConsumer", topics = "#{topicUtil.topics()}"
+    @KafkaListener(id = "kafkaConsumer", topics = "#{topicUtil.topics()}"
             ,containerFactory = "kafkaBatchListenerContainerFactory")
     public void listenBatch0(List<ConsumerRecord<String, String>> list, Acknowledgment ack) throws Exception {
         if (list != null || !list.isEmpty()) {

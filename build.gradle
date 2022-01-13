@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.4.4'
+    id 'org.springframework.boot' version '2.6.2'
 }
 
 apply plugin: 'java'
@@ -17,14 +17,16 @@ version = "0.0.1-SNAPSHOT"
 
 dependencies {
 
-    implementation("org.springframework.boot:spring-boot-starter-web:2.4.4")
-    implementation("org.springframework.boot:spring-boot-starter-actuator:2.4.4")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:2.4.4")
+    implementation("org.springframework.boot:spring-boot-starter-web:2.6.2")
+    implementation("org.springframework.boot:spring-boot-starter-actuator:2.6.2")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:2.6.2") {
+        exclude group: 'com.vaadin.external.google', module: 'android-json'
+    }
 
-    implementation("io.micrometer:micrometer-registry-prometheus:1.6.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.8.1")
 
     implementation("com.google.guava:guava:31.0.1-jre")
-    implementation("org.springframework.kafka:spring-kafka:2.7.1")
+    implementation("org.springframework.kafka:spring-kafka:2.8.1")
     implementation("org.json:json:20210307")
     implementation("com.amazonaws:aws-java-sdk-cloudwatch:1.11.750")
     implementation("software.amazon.neptune:gremlin-client:1.0.1")
