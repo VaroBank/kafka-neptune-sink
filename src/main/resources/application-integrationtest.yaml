@@ -9,10 +9,11 @@ logging:
 app:
   kafka:
     consumer:
-      topics: cdc.customer.customer,
-        cdc.login.login,
-        cdc.orders.orders,
-        cdc.service.service
+      topics:
+        - cdc.customer.customer
+        - cdc.login.login
+        - cdc.orders.orders
+        - cdc.service.service
 
 spring:
   kafka:

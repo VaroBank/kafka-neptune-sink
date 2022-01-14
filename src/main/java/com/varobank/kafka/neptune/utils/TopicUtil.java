@@ -25,7 +25,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.varobank.kafka.neptune.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,21 +34,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
+@ConfigurationProperties(prefix = "app.kafka.consumer")
 public class TopicUtil {
 
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Value("#{'${app.kafka.consumer.topics}'.split(',')}")
-    private List<String> consumerTopics;
+    private List<String> topics;
+
+    public void setTopics(List<String> topics) {
+        this.topics = topics;
+    }
 
     @Bean
     public List<String> topics() {
-        return consumerTopics.stream().map(p -> p.trim()).collect(Collectors.toList());
+        return topics;
     }
 
     @Bean
     public List<String> retryTopics() {
-        return consumerTopics.stream().map(p -> p.trim() + "__" + applicationContext.getId() + "__retry").collect(Collectors.toList());
+        return topics.stream().map(p -> p.trim() + "__" + applicationContext.getId() + "__retry").collect(Collectors.toList());
     }
 }

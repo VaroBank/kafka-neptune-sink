@@ -88,13 +88,13 @@ public class Consumer extends AbstractConsumerSeekAware {
             ,containerFactory = "kafkaBatchListenerContainerFactory")
     public void listenBatch0(List<ConsumerRecord<String, String>> list, Acknowledgment ack) throws Exception {
         if (list != null || !list.isEmpty()) {
-            logger.info("polled from kafka " + list.size());
+            logger.debug("polled from kafka " + list.size());
             validateSchema(list);
             writeBatchToNeptune(list);
             list.clear();
             ack.acknowledge();
         } else {
-            logger.info("polled from kafka empty list");
+            logger.debug("polled from kafka empty list");
             ack.acknowledge();
         }
     }
@@ -253,7 +253,7 @@ public class Consumer extends AbstractConsumerSeekAware {
             }
             @Override
             public void onFailure(Throwable ex) {
-                logger.info("Unable to send message=["
+                logger.error("Unable to send message=["
                         + message + "] due to : " + ex.getMessage());
             }
         });
