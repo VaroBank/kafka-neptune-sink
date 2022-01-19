@@ -81,9 +81,9 @@ public class NeptuneBatchWriter {
     /**
      * Validates the user defined Neptune schema against the kafka messages - if not valid throws an Exception
      * @param records
-     * @throws Exception
+     * @throws InvalidSchemaException
      */
-    public void validateSchema(List<ConsumerRecord<String, String>> records) throws Exception {
+    public void validateSchema(List<ConsumerRecord<String, String>> records) throws InvalidSchemaException {
         for (ConsumerRecord<String, String> record : records) {
             if (record != null) {
                 String topic = record.topic();

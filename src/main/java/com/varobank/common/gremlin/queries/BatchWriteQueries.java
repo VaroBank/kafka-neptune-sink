@@ -48,9 +48,6 @@ public class BatchWriteQueries extends BaseQueries {
 
     private static final Logger logger = LoggerFactory.getLogger(BatchWriteQueries.class);
 
-    public BatchWriteQueries() {
-    }
-
     protected BatchWriteQueries(ConnectionConfig connectionConfig, Schema schema) {
         this.traversal = new GremlinTraversal(connectionConfig.traversalSource());
         setSchema(schema);

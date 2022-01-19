@@ -70,14 +70,14 @@ public class Schema {
         this.schema = schema;
     }
 
-    public void validateSchema(JSONObject json, String topic) throws Exception {
+    public void validateSchema(JSONObject json, String topic) throws InvalidSchemaException {
         try {
             Map<String, String> settings = getSchema().get(topic);
             String id = settings.get("id");
             String prefix = settings.get("prefix");
             String idValue = json.get(id).toString();
             if (idValue.isEmpty()) {
-                throw new Exception("Invalid Neptune schema. Empty id value: " + id + " for topic: " + topic);
+                throw new InvalidSchemaException("Invalid Neptune schema. Empty id value: " + id + " for topic: " + topic);
             }
             if (settings.containsKey("child")) {
                 String childTopicsStr = settings.get("child");
@@ -106,7 +106,7 @@ public class Schema {
                 }
             }
         } catch (Exception e) {
-            throw new Exception("Invalid Neptune schema " + e.getMessage(), e);
+            throw new InvalidSchemaException("Invalid Neptune schema " + e.getMessage(), e);
         }
     }
 }

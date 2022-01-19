@@ -50,9 +50,6 @@ public class ReadQueries extends BaseQueries {
 
     private static final Logger logger = LoggerFactory.getLogger(ReadQueries.class);
 
-    public ReadQueries() {
-    }
-
     protected ReadQueries(ConnectionConfig connectionConfig, Schema schema) {
         this.connectionConfig = connectionConfig;
         setSchema(schema);

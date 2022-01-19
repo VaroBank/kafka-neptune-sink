@@ -25,6 +25,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.varobank.kafka.neptune.engine;
 
 import com.google.common.cache.CacheBuilder;
+import com.varobank.common.gremlin.utils.InvalidSchemaException;
 import com.varobank.kafka.neptune.utils.TopicUtil;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONException;
@@ -100,15 +101,15 @@ public class Consumer extends AbstractConsumerSeekAware {
     }
 
     /**
-     * Validates the user defined Neptune schema against the kafka messages - if not valid throws an Exception
+     * Validates the user defined Neptune schema against the kafka messages - if not valid throws an InvalidSchemaException
      * @param list
-     * @throws Exception
+     * @throws InvalidSchemaException
      */
-    private void validateSchema(List<ConsumerRecord<String, String>> list) throws Exception {
+    private void validateSchema(List<ConsumerRecord<String, String>> list) throws InvalidSchemaException {
         neptuneBatchWriter.validateSchema(list);
     }
 
-    private void validateSchema(ConsumerRecord<String, String> record) throws Exception {
+    private void validateSchema(ConsumerRecord<String, String> record) throws InvalidSchemaException {
         neptuneBatchWriter.validateSchema(Arrays.asList(record));
     }
 

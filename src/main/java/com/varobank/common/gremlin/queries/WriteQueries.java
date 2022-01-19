@@ -47,9 +47,6 @@ public class WriteQueries extends BaseQueries {
 
     private static final Logger logger = LoggerFactory.getLogger(WriteQueries.class);
 
-    public WriteQueries() {
-    }
-
     protected WriteQueries(ConnectionConfig connectionConfig, Schema schema) {
         this.traversalSource = connectionConfig.traversalSource();
         setSchema(schema);
@@ -79,7 +76,6 @@ public class WriteQueries extends BaseQueries {
             String childVerticesStr = settings.get("child");
             String[] childVertices = childVerticesStr.split(",");
             for (String childVertex : childVertices) {
-                clearByVertex(childVertex);
                 clearNeptuneVertices(childVertex);
             }
         }
