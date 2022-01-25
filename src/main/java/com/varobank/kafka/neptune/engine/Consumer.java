@@ -36,6 +36,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.AbstractConsumerSeekAware;
+import org.springframework.kafka.listener.BatchListenerFailedException;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
@@ -87,11 +88,15 @@ public class Consumer extends AbstractConsumerSeekAware {
      */
     @KafkaListener(id = "kafkaConsumer", topics = "#{topicUtil.topics()}"
             ,containerFactory = "kafkaBatchListenerContainerFactory")
-    public void listenBatch0(List<ConsumerRecord<String, String>> list, Acknowledgment ack) throws Exception {
+    public void listenBatch0(List<ConsumerRecord<String, String>> list, Acknowledgment ack) throws BatchListenerFailedException {
         if (list != null || !list.isEmpty()) {
             logger.debug("polled from kafka " + list.size());
-            validateSchema(list);
-            writeBatchToNeptune(list);
+            try {
+                validateSchema(list);
+                writeBatchToNeptune(list);
+            } catch (Exception e) {
+                throw new BatchListenerFailedException("Batch listener failed", e, 0);
+            }
             list.clear();
             ack.acknowledge();
         } else {

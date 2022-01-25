@@ -93,8 +93,12 @@ public class NeptuneBatchWriter {
                             (payload.has(AFTER) ? payload.getJSONObject(AFTER) : null);
                     if (json != null) {
                         schema.validateSchema(json, topic);
+                    } else {
+                        logger.warn("Ignoring message with no " + BEFORE + "/" + AFTER + ", " + record.value());
                     }
                 }
+            } else {
+                logger.warn("Ignoring null kafka message");
             }
         }
     }
@@ -196,11 +200,17 @@ public class NeptuneBatchWriter {
     }
 
     private JSONObject getPayloadJson(String message) {
-        JSONObject json = new JSONObject(message);
-        if (json != null && json.has(PAYLOAD)) {
-            JSONObject payload = json.getJSONObject(PAYLOAD);
-            if (payload != null && payload.has(OP)) {
-                return payload;
+        if (message != null) {
+            JSONObject json = new JSONObject(message);
+            if (json != null && json.has(PAYLOAD)) {
+                JSONObject payload = json.getJSONObject(PAYLOAD);
+                if (payload != null && payload.has(OP)) {
+                    return payload;
+                } else {
+                    logger.warn("Ignoring message with no " + OP + ", " + message);
+                }
+            } else {
+                logger.warn("Ignoring message with no " + PAYLOAD + ", " + message);
             }
         }
 

@@ -33,8 +33,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
-import org.springframework.kafka.listener.BatchLoggingErrorHandler;
-import org.springframework.kafka.listener.LoggingErrorHandler;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.Map;
 
@@ -71,7 +71,7 @@ public class CommonKafkaListenerContainerConfig {
         factory.setBatchListener(true);
         factory.setConcurrency(kafkaProperties.getListener().getConcurrency());
         factory.getContainerProperties().setAckMode(kafkaProperties.getListener().getAckMode());
-        factory.setBatchErrorHandler(new BatchLoggingErrorHandler());
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff()));
         return factory;
     }
 
@@ -82,7 +82,7 @@ public class CommonKafkaListenerContainerConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.setBatchListener(false);
         factory.getContainerProperties().setAckMode(kafkaProperties.getListener().getAckMode());
-        factory.setErrorHandler(new LoggingErrorHandler());
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff()));
         return factory;
     }
 
