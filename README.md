@@ -87,32 +87,32 @@ This code is made available under a BSD 2-Clause License. See the LICENSE file.
 
 ## Project dependencies licenses:
 
-### Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0):
+#### Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0):
 
-#### Copyright (c) 2012-2021 Pivotal, Inc.
+##### Copyright (c) 2012-2021 Pivotal, Inc.
 - org.springframework.boot
 - org.springframework.kafka
 
-#### Copyright 2010-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+##### Copyright 2010-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 - com.amazonaws
 - software.amazon.neptune
 
-#### Copyright 2001-2011 The Apache Software Foundation
+##### Copyright 2001-2011 The Apache Software Foundation
 - net.logstash.logback 
 - commons-io
 
-#### Copyright 2020 VMware, Inc.
+##### Copyright 2020 VMware, Inc.
 - io.micrometer
 
-#### Copyright (C) 2010 The Guava Authors
+##### Copyright (C) 2010 The Guava Authors
 - com.google.guava
 
-#### Copyright (c) 2008, http://www.snakeyaml.org
+##### Copyright (c) 2008, http://www.snakeyaml.org
 - org.yaml
 
-#### Copyright 2021 more-testcontainers contributors
+##### Copyright 2021 more-testcontainers contributors
 - com.rpuch.more-testcontainers
 
-### JSON license (https://www.json.org/license.html):
-#### Copyright (c) 2002 JSON.org
+#### JSON license (https://www.json.org/license.html):
+##### Copyright (c) 2002 JSON.org
 - org.json
