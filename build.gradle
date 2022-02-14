@@ -16,7 +16,6 @@ jar {
 version = "0.0.1-SNAPSHOT"
 
 dependencies {
-
     implementation("org.springframework.boot:spring-boot-starter-web:2.6.2")
     implementation("org.springframework.boot:spring-boot-starter-actuator:2.6.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test:2.6.2") {
@@ -27,14 +26,14 @@ dependencies {
 
     implementation("com.google.guava:guava:31.0.1-jre")
     implementation("org.springframework.kafka:spring-kafka:2.8.1")
-    implementation("org.json:json:20210307")
+    implementation("org.json:json:20211205")
     implementation("com.amazonaws:aws-java-sdk-cloudwatch:1.11.750")
-    implementation("software.amazon.neptune:gremlin-client:1.0.1")
-    implementation("org.yaml:snakeyaml:1.23")
-    implementation("net.logstash.logback:logstash-logback-encoder:5.2")
-    implementation("commons-io:commons-io:2.10.0")
+    implementation("com.amazonaws:aws-java-sdk-neptune:1.12.156")
+    implementation("org.apache.tinkerpop:gremlin-driver:3.5.2")
+    implementation("org.yaml:snakeyaml:1.30")
+    implementation("net.logstash.logback:logstash-logback-encoder:7.0.1")
+    implementation("commons-io:commons-io:2.11.0")
     testImplementation("junit:junit:4.4")
     testImplementation("org.mockito:mockito-core:3.2.4")
     testImplementation("com.rpuch.more-testcontainers:gremlin-server-testcontainer:1.0.0")
-
 }

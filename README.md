@@ -89,30 +89,36 @@ This code is made available under a BSD 2-Clause License. See the LICENSE file.
 
 #### Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0):
 
-##### Copyright (c) 2012-2021 Pivotal, Inc.
-- org.springframework.boot
-- org.springframework.kafka
+##### org.springframework.boot
+- org.springframework.boot:spring-boot-starter-web - Copyright (c) 2012-2021 Pivotal, Inc.
+- org.springframework.boot:spring-boot-starter-actuator - Copyright (c) 2012-2021 Pivotal, Inc.
 
-##### Copyright 2010-2014 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-- com.amazonaws
-- software.amazon.neptune
+##### org.springframework.kafka
+- org.springframework.kafka:spring-kafka - Copyright (c) 2012-2021 Pivotal, Inc.
 
-##### Copyright 2001-2011 The Apache Software Foundation
-- net.logstash.logback 
-- commons-io
+##### com.amazonaws
+- com.amazonaws:aws-java-sdk-cloudwatch - Copyright 2017-2022 Amazon.com, Inc. or its affiliates.
+- com.amazonaws:aws-java-sdk-neptune - Copyright 2017-2022 Amazon.com, Inc. or its affiliates.
 
-##### Copyright 2020 VMware, Inc.
-- io.micrometer
+##### net.logstash.logback
+- net.logstash.logback:logstash-logback-encoder - Copyright 2013-2021 The Apache Software Foundation
 
-##### Copyright (C) 2010 The Guava Authors
-- com.google.guava
+##### commons-io
+- commons-io:commons-io - Copyright 2002-2021 The Apache Software Foundation
 
-##### Copyright (c) 2008, http://www.snakeyaml.org
-- org.yaml
+##### org.apache.tinkerpop
+- org.apache.tinkerpop:gremlin-driver - Copyright 2013-2022 Apache Software Foundation
 
-##### Copyright 2021 more-testcontainers contributors
-- com.rpuch.more-testcontainers
+##### io.micrometer
+- io.micrometer:micrometer-registry-prometheus - Copyright 2020 VMware, Inc.
+
+##### com.google.guava
+- com.google.guava:guava - Copyright (C) 2010 The Guava Authors
+
+##### org.yaml
+- org.yaml:snakeyaml - Copyright (c) 2008, http://www.snakeyaml.org
 
 #### JSON license (https://www.json.org/license.html):
-##### Copyright (c) 2002 JSON.org
-- org.json
+
+##### org.json
+- org.json:json - Copyright (c) 2018 JSON.org

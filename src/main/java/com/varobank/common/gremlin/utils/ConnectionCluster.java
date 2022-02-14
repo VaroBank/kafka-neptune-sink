@@ -24,6 +24,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.varobank.common.gremlin.utils;
 
+import com.varobank.common.neptune.api.ClusterEndpointsRefreshAgent;
+import com.varobank.common.neptune.api.EndpointsType;
 import org.apache.tinkerpop.gremlin.driver.Client;
 import org.apache.tinkerpop.gremlin.driver.Cluster;
 import org.apache.tinkerpop.gremlin.driver.ser.Serializers;
@@ -31,12 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import software.amazon.neptune.cluster.ClusterEndpointsRefreshAgent;
-import software.amazon.neptune.cluster.EndpointsType;
 
 import java.util.Collection;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -44,8 +42,6 @@ import java.util.stream.Collectors;
 public class ConnectionCluster {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionCluster.class);
-
-    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
     private ClusterEndpointsRefreshAgent refreshAgent = null;
     private Cluster cluster = null;
@@ -152,7 +148,7 @@ public class ConnectionCluster {
                 }
             }
         };
-        scheduledExecutorService.scheduleWithFixedDelay(refreshEndpoints, delay, delay, timeUnit);
+        refreshAgent.startPollingNeptuneAPI(refreshEndpoints, delay, timeUnit);
     }
 
     public Client connect() {
@@ -162,8 +158,16 @@ public class ConnectionCluster {
     }
 
     public void close() throws Exception {
-        if (cluster != null) {
-            cluster.close();
+        try {
+            if (refreshAgent != null) {
+                refreshAgent.close();
+                refreshAgent = null;
+            }
+        } finally {
+            if (cluster != null) {
+                cluster.close();
+                cluster = null;
+            }
         }
     }
 }
