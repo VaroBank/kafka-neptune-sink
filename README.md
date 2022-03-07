@@ -87,7 +87,7 @@ This code is made available under a BSD 2-Clause License. See the LICENSE file.
 
 ## Project dependencies licenses:
 
-#### Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0):
+#### Apache License, Version 2.0 (see dependency_licenses/Apache2):
 
 ##### org.springframework.boot
 - org.springframework.boot:spring-boot-starter-web - Copyright (c) 2012-2021 Pivotal, Inc.
