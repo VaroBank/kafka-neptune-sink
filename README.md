@@ -118,7 +118,7 @@ This code is made available under a BSD 2-Clause License. See the LICENSE file.
 ##### org.yaml
 - org.yaml:snakeyaml - Copyright (c) 2008, http://www.snakeyaml.org
 
-#### JSON license (https://www.json.org/license.html):
+#### JSON license (see dependency_licenses/JSON):
 
 ##### org.json
 - org.json:json - Copyright (c) 2018 JSON.org
